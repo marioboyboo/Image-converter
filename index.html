@@ -18,11 +18,11 @@ body {
 .card {
   background: #0040ff; /* medium blue */
   border-radius: 25px;
-  padding: 20px;
-  width: 300px;
+  padding: 40px; /* bigger padding */
+  width: 400px; /* increased width */
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 20px; /* more space between elements */
 }
 
 /* Buttons & select */
@@ -30,7 +30,7 @@ button, .upload, select {
   background: #0055ff; /* brighter blue */
   color: black;
   font-weight: bold;
-  font-size: 16px;
+  font-size: 18px; /* bigger font */
   border: none;
   border-radius: 20px;
   padding: 15px;
@@ -59,9 +59,19 @@ button:hover, .upload:hover, select:hover {
   background: #0055ff;
   border-radius: 20px;
   width: 100%;
-  height: 150px;
+  height: 200px; /* taller preview */
   object-fit: contain;
   display: block;
+}
+
+/* Add placeholder text */
+#preview::after {
+  content: "Image shows up here";
+  color: black;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 /* Select dropdown */
@@ -79,7 +89,7 @@ select {
   color: black;
   font-weight: bold;
   text-decoration: none;
-  padding: 12px;
+  padding: 15px;
   border-radius: 20px;
   background: #0055ff;
 }
@@ -103,7 +113,7 @@ select {
     <option value="ico">ICO</option>
   </select>
 
-  <img id="preview" alt="(Image preview shows up here)">
+  <img id="preview" alt="Image shows up here">
 
   <button onclick="convert()">Convert</button>
 
