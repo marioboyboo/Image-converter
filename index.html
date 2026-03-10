@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>Image Converter</title>
 <style>
+/* Body with horizontal gradient animation */
 body {
   margin: 0;
   font-family: Arial, Helvetica, sans-serif;
@@ -11,11 +12,49 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background: #001f99;
+  overflow: hidden;
+  /* New gradient: blue → red → magenta */
+  background: linear-gradient(90deg, #001f99, #ff0000, #ff00ff);
+  background-size: 400% 400%;
+  animation: gradientAnimation 20s ease infinite;
 }
 
-/* Card */
+@keyframes gradientAnimation {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Floating shapes container */
+.floating-shapes {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+
+/* Floating circles */
+.shape {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.3;
+  background: linear-gradient(90deg, #ff00ff, #ff0000, #001f99); /* reversed gradient */
+  animation: floatAnimation linear infinite;
+}
+
+@keyframes floatAnimation {
+  0% { transform: translateY(100vh) translateX(0) rotate(0deg); }
+  50% { transform: translateY(50vh) translateX(50px) rotate(180deg); }
+  100% { transform: translateY(-100vh) translateX(-50px) rotate(360deg); }
+}
+
+/* Card styling */
 .card {
+  position: relative;
+  z-index: 1; /* above shapes */
   background: #0040ff;
   border-radius: 25px;
   padding: 60px;
@@ -44,15 +83,8 @@ button:hover, .upload:hover {
 }
 
 /* Upload label */
-.upload {
-  display: block;
-  text-align: center;
-}
-
-/* Hide actual file input */
-.upload input {
-  display: none;
-}
+.upload { display: block; text-align: center; }
+.upload input { display: none; }
 
 /* Preview container */
 .preview-container {
@@ -86,7 +118,7 @@ select {
   -webkit-appearance: none;
   -moz-appearance: none;
   position: relative;
-  padding: 20px 50px 20px 20px; /* room for arrow */
+  padding: 20px 50px 20px 20px;
   background: #0055ff url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><polygon points="6,9 12,15 18,9" fill="black"/></svg>') no-repeat right 15px center;
   background-size: 12px;
   border-radius: 25px;
@@ -97,9 +129,7 @@ select {
   border: none;
   transition: background 0.3s;
 }
-select:hover {
-  background-color: #0066ff;
-}
+select:hover { background-color: #0066ff; }
 
 /* Download link */
 #downloadLink {
@@ -114,12 +144,13 @@ select:hover {
   font-size: 22px;
   transition: background 0.3s;
 }
-#downloadLink:hover {
-  background: #0066ff;
-}
+#downloadLink:hover { background: #0066ff; }
 </style>
 </head>
 <body>
+
+<!-- Floating shapes -->
+<div class="floating-shapes" id="shapesContainer"></div>
 
 <div class="card">
   <label class="upload">Choose Image
@@ -145,6 +176,21 @@ select:hover {
 </div>
 
 <script>
+// Generate floating shapes
+const container = document.getElementById('shapesContainer');
+for (let i = 0; i < 15; i++) {
+  const shape = document.createElement('div');
+  shape.className = 'shape';
+  const size = Math.random() * 80 + 40; // 40–120px
+  shape.style.width = `${size}px`;
+  shape.style.height = `${size}px`;
+  shape.style.left = `${Math.random() * 100}%`;
+  shape.style.animationDuration = `${20 + Math.random()*20}s`;
+  shape.style.animationDelay = `${Math.random() * 20}s`;
+  container.appendChild(shape);
+}
+
+// Image converter logic
 let img = new Image();
 let ready = false;
 
@@ -152,7 +198,6 @@ document.getElementById("fileInput").addEventListener("change", e => {
   const file = e.target.files[0];
   if(!file) return;
   const reader = new FileReader();
-
   reader.onload = ev => {
     img.onload = () => {
       ready = true;
@@ -162,20 +207,14 @@ document.getElementById("fileInput").addEventListener("change", e => {
     img.src = ev.target.result;
     document.getElementById("preview").src = img.src;
   };
-
   reader.readAsDataURL(file);
 });
 
 function convert() {
-  if(!ready){
-    alert("Image still loading");
-    return;
-  }
-
+  if(!ready){ alert("Image still loading"); return; }
   const format = document.getElementById("format").value;
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
-
   canvas.width = img.width;
   canvas.height = img.height;
   ctx.drawImage(img, 0, 0);
