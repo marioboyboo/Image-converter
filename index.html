@@ -18,11 +18,12 @@ body {
 .card {
   background: #0040ff; /* medium blue */
   border-radius: 25px;
-  padding: 40px; /* bigger padding */
-  width: 400px; /* increased width */
+  padding: 50px;
+  width: 500px; /* bigger width */
   display: flex;
   flex-direction: column;
-  gap: 20px; /* more space between elements */
+  gap: 25px; /* bigger gaps */
+  box-shadow: 0 10px 20px rgba(0,0,0,0.4);
 }
 
 /* Buttons & select */
@@ -30,12 +31,13 @@ button, .upload, select {
   background: #0055ff; /* brighter blue */
   color: black;
   font-weight: bold;
-  font-size: 18px; /* bigger font */
+  font-size: 20px; /* larger font */
   border: none;
-  border-radius: 20px;
-  padding: 15px;
+  border-radius: 25px;
+  padding: 20px;
   cursor: pointer;
   text-align: center;
+  transition: background 0.3s;
 }
 
 /* Hover effects */
@@ -54,24 +56,30 @@ button:hover, .upload:hover, select:hover {
   display: none;
 }
 
-/* Image preview */
-#preview {
-  background: #0055ff;
-  border-radius: 20px;
+/* Image preview container */
+.preview-container {
+  position: relative;
   width: 100%;
-  height: 200px; /* taller preview */
-  object-fit: contain;
-  display: block;
-}
-
-/* Add placeholder text */
-#preview::after {
-  content: "Image shows up here";
-  color: black;
-  text-align: center;
+  height: 250px; /* bigger preview */
+  background: #0055ff;
+  border-radius: 25px;
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
+  font-size: 20px;
+  color: black;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Actual image */
+#preview {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: none; /* hide until loaded */
+  border-radius: 25px;
 }
 
 /* Select dropdown */
@@ -89,9 +97,11 @@ select {
   color: black;
   font-weight: bold;
   text-decoration: none;
-  padding: 15px;
-  border-radius: 20px;
+  padding: 20px;
+  border-radius: 25px;
   background: #0055ff;
+  font-size: 20px;
+  transition: background 0.3s;
 }
 #downloadLink:hover {
   background: #0066ff;
@@ -113,7 +123,10 @@ select {
     <option value="ico">ICO</option>
   </select>
 
-  <img id="preview" alt="Image shows up here">
+  <div class="preview-container" id="previewContainer">
+    <span id="placeholderText">Image shows up here</span>
+    <img id="preview" alt="Image shows up here">
+  </div>
 
   <button onclick="convert()">Convert</button>
 
@@ -129,7 +142,11 @@ document.getElementById("fileInput").addEventListener("change", e => {
   const reader = new FileReader();
 
   reader.onload = ev => {
-    img.onload = () => ready = true;
+    img.onload = () => {
+      ready = true;
+      document.getElementById("preview").style.display = "block";
+      document.getElementById("placeholderText").style.display = "none";
+    };
     img.src = ev.target.result;
     document.getElementById("preview").src = img.src;
   };
