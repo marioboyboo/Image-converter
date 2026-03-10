@@ -5,7 +5,7 @@
 <title>Image Converter</title>
 
 <!-- Website Icon -->
-<link rel="icon" type="image/png" href="favicon.png">
+<link rel="icon" href="favicon.ico">
 
 <style>
 /* Body with horizontal gradient animation */
@@ -160,44 +160,44 @@ select:hover {
 <div class="floating-shapes" id="shapesContainer"></div>
 
 <div class="card">
-  <label class="upload">Choose Image
-    <input type="file" id="fileInput" accept="image/*">
-  </label>
+<label class="upload">Choose Image
+<input type="file" id="fileInput" accept="image/*">
+</label>
 
-  <select id="format">
-    <option value="png">PNG</option>
-    <option value="jpeg">JPG</option>
-    <option value="webp">WEBP</option>
-    <option value="bmp">BMP</option>
-    <option value="ico">ICO</option>
-  </select>
+<select id="format">
+<option value="png">PNG</option>
+<option value="jpeg">JPG</option>
+<option value="webp">WEBP</option>
+<option value="bmp">BMP</option>
+<option value="ico">ICO</option>
+</select>
 
-  <div class="preview-container">
-    <span id="placeholderText">Image shows up here</span>
-    <img id="preview">
-  </div>
+<div class="preview-container">
+<span id="placeholderText">Image shows up here</span>
+<img id="preview">
+</div>
 
-  <button onclick="convert()">Convert</button>
+<button onclick="convert()">Convert</button>
 
-  <a id="downloadLink">Download</a>
+<a id="downloadLink">Download</a>
 </div>
 
 <script>
 const container = document.getElementById('shapesContainer');
 
 for (let i = 0; i < 15; i++) {
-  const shape = document.createElement('div');
-  shape.className = 'shape';
+const shape = document.createElement('div');
+shape.className = 'shape';
 
-  const size = Math.random() * 80 + 40;
+const size = Math.random() * 80 + 40;
 
-  shape.style.width = size + "px";
-  shape.style.height = size + "px";
-  shape.style.left = Math.random() * 100 + "%";
-  shape.style.animationDuration = (20 + Math.random() * 20) + "s";
-  shape.style.animationDelay = (Math.random() * 20) + "s";
+shape.style.width = size + "px";
+shape.style.height = size + "px";
+shape.style.left = Math.random() * 100 + "%";
+shape.style.animationDuration = (20 + Math.random() * 20) + "s";
+shape.style.animationDelay = (Math.random() * 20) + "s";
 
-  container.appendChild(shape);
+container.appendChild(shape);
 }
 
 let img = new Image();
@@ -205,92 +205,92 @@ let ready = false;
 
 document.getElementById("fileInput").addEventListener("change", e => {
 
-  const file = e.target.files[0];
-  if (!file) return;
+const file = e.target.files[0];
+if (!file) return;
 
-  const reader = new FileReader();
+const reader = new FileReader();
 
-  reader.onload = ev => {
+reader.onload = ev => {
 
-    img.onload = () => {
-      ready = true;
-      document.getElementById("preview").style.display = "block";
-      document.getElementById("placeholderText").style.display = "none";
-    };
+img.onload = () => {
+ready = true;
+document.getElementById("preview").style.display = "block";
+document.getElementById("placeholderText").style.display = "none";
+};
 
-    img.src = ev.target.result;
-    document.getElementById("preview").src = img.src;
-  };
+img.src = ev.target.result;
+document.getElementById("preview").src = img.src;
+};
 
-  reader.readAsDataURL(file);
+reader.readAsDataURL(file);
 
 });
 
 function convert() {
 
-  if (!ready) {
-    alert("Image still loading");
-    return;
-  }
+if (!ready) {
+alert("Image still loading");
+return;
+}
 
-  const format = document.getElementById("format").value;
+const format = document.getElementById("format").value;
 
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
+const canvas = document.createElement("canvas");
+const ctx = canvas.getContext("2d");
 
-  canvas.width = img.width;
-  canvas.height = img.height;
+canvas.width = img.width;
+canvas.height = img.height;
 
-  ctx.drawImage(img, 0, 0);
+ctx.drawImage(img, 0, 0);
 
-  if (format !== "ico") {
+if (format !== "ico") {
 
-    const url = canvas.toDataURL("image/" + format);
-    download(url, "converted." + format);
+const url = canvas.toDataURL("image/" + format);
+download(url, "converted." + format);
 
-  } else {
+} else {
 
-    canvas.toBlob(async blob => {
+canvas.toBlob(async blob => {
 
-      const png = new Uint8Array(await blob.arrayBuffer());
+const png = new Uint8Array(await blob.arrayBuffer());
 
-      const header = new Uint8Array(22);
+const header = new Uint8Array(22);
 
-      header[2] = 1;
-      header[4] = 1;
-      header[10] = 1;
-      header[12] = 32;
+header[2] = 1;
+header[4] = 1;
+header[10] = 1;
+header[12] = 32;
 
-      const view = new DataView(header.buffer);
+const view = new DataView(header.buffer);
 
-      view.setUint32(14, png.length, true);
-      view.setUint32(18, 22, true);
+view.setUint32(14, png.length, true);
+view.setUint32(18, 22, true);
 
-      const ico = new Uint8Array(header.length + png.length);
+const ico = new Uint8Array(header.length + png.length);
 
-      ico.set(header, 0);
-      ico.set(png, header.length);
+ico.set(header, 0);
+ico.set(png, header.length);
 
-      const blobOut = new Blob([ico], {type: "image/x-icon"});
+const blobOut = new Blob([ico], {type: "image/x-icon"});
 
-      const url = URL.createObjectURL(blobOut);
+const url = URL.createObjectURL(blobOut);
 
-      download(url, "converted.ico");
+download(url, "converted.ico");
 
-    });
+});
 
-  }
+}
 
 }
 
 function download(url, name) {
 
-  const link = document.getElementById("downloadLink");
+const link = document.getElementById("downloadLink");
 
-  link.href = url;
-  link.download = name;
-  link.style.display = "block";
-  link.innerText = "Download " + name;
+link.href = url;
+link.download = name;
+link.style.display = "block";
+link.innerText = "Download " + name;
 
 }
 </script>
