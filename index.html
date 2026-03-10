@@ -1,12 +1,13 @@
+```html
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Image File Converter</title>
+<title>Image Converter</title>
 
 <style>
 body{
-    font-family: Arial, sans-serif;
+    font-family:Arial;
     background:#111;
     color:white;
     text-align:center;
@@ -32,12 +33,8 @@ select{
     font-size:16px;
 }
 
-canvas{
-    display:none;
-}
-
 img{
-    max-width:200px;
+    max-width:250px;
     margin-top:20px;
 }
 </style>
@@ -60,7 +57,7 @@ Convert To:
 <option value="ico">ICO</option>
 </select>
 
-<br>
+<br><br>
 
 <button onclick="convertImage()">Convert</button>
 
@@ -68,17 +65,18 @@ Convert To:
 
 <img id="preview">
 
-<br>
+<br><br>
 
 <a id="downloadLink" style="display:none;">Download</a>
 
 </div>
 
-<canvas id="canvas"></canvas>
+<canvas id="canvas" style="display:none"></canvas>
 
 <script>
 
 let img = new Image()
+let imageLoaded = false
 
 document.getElementById("fileInput").addEventListener("change", function(e){
 
@@ -86,6 +84,11 @@ document.getElementById("fileInput").addEventListener("change", function(e){
     const reader = new FileReader()
 
     reader.onload = function(event){
+
+        img.onload = function(){
+            imageLoaded = true
+        }
+
         img.src = event.target.result
         document.getElementById("preview").src = img.src
     }
@@ -95,23 +98,28 @@ document.getElementById("fileInput").addEventListener("change", function(e){
 
 function convertImage(){
 
+    if(!imageLoaded){
+        alert("Image still loading.")
+        return
+    }
+
     const canvas = document.getElementById("canvas")
     const ctx = canvas.getContext("2d")
 
     canvas.width = img.width
     canvas.height = img.height
 
+    ctx.clearRect(0,0,canvas.width,canvas.height)
     ctx.drawImage(img,0,0)
 
     const format = document.getElementById("format").value
 
     if(format === "ico"){
-        createICO(canvas)
+        createICO()
         return
     }
 
     const mime = "image/" + format
-
     const dataURL = canvas.toDataURL(mime)
 
     const link = document.getElementById("downloadLink")
@@ -121,9 +129,9 @@ function convertImage(){
     link.style.display = "block"
 }
 
-function createICO(canvas){
+function createICO(){
 
-    const size = 32
+    const size = 64
 
     const tempCanvas = document.createElement("canvas")
     const ctx = tempCanvas.getContext("2d")
@@ -131,7 +139,17 @@ function createICO(canvas){
     tempCanvas.width = size
     tempCanvas.height = size
 
-    ctx.drawImage(canvas,0,0,size,size)
+    ctx.clearRect(0,0,size,size)
+
+    const scale = Math.min(size/img.width,size/img.height)
+
+    const w = img.width * scale
+    const h = img.height * scale
+
+    const x = (size - w)/2
+    const y = (size - h)/2
+
+    ctx.drawImage(img,x,y,w,h)
 
     tempCanvas.toBlob(function(blob){
 
@@ -141,7 +159,7 @@ function createICO(canvas){
 
             const pngData = new Uint8Array(reader.result)
 
-            const icoHeader = new Uint8Array([
+            const header = new Uint8Array([
                 0,0,
                 1,0,
                 1,0,
@@ -155,19 +173,19 @@ function createICO(canvas){
                 22,0,0,0
             ])
 
-            const icoFile = new Uint8Array(icoHeader.length + pngData.length)
+            const ico = new Uint8Array(header.length + pngData.length)
 
-            icoFile.set(icoHeader,0)
-            icoFile.set(pngData,icoHeader.length)
+            ico.set(header,0)
+            ico.set(pngData,header.length)
 
-            const blob = new Blob([icoFile],{type:"image/x-icon"})
+            const blob = new Blob([ico],{type:"image/x-icon"})
 
             const url = URL.createObjectURL(blob)
 
             const link = document.getElementById("downloadLink")
             link.href = url
             link.download = "converted.ico"
-            link.innerText = "Download ICO File"
+            link.innerText = "Download ICO"
             link.style.display = "block"
         }
 
@@ -180,3 +198,4 @@ function createICO(canvas){
 
 </body>
 </html>
+```
