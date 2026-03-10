@@ -4,126 +4,96 @@
 <meta charset="UTF-8">
 <title>Image Converter</title>
 <style>
-/* Reset & body */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #ff6ec4, #7873f5);
-  height: 100vh;
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #001f99; /* dark blue background */
 }
 
-/* Card container */
+/* Card */
 .card {
-  background: #fff;
-  padding: 40px;
+  background: #0040ff; /* medium blue */
   border-radius: 25px;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.2);
-  width: 380px;
-  text-align: center;
-  transition: transform 0.3s ease;
-}
-.card:hover {
-  transform: translateY(-5px);
+  padding: 20px;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
-/* Heading */
-h1 {
-  font-size: 28px;
-  margin-bottom: 20px;
-  color: #333;
-  font-weight: 700;
-}
-
-/* Upload area */
-.upload {
-  border: 2px dashed #ccc;
-  border-radius: 20px;
-  padding: 35px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  color: #666;
+/* Buttons & select */
+button, .upload, select {
+  background: #0055ff; /* brighter blue */
+  color: black;
+  font-weight: bold;
   font-size: 16px;
-}
-.upload:hover {
-  border-color: #ff6ec4;
-  background: #f9f5ff;
-  color: #333;
-}
-
-/* Preview image */
-#preview {
-  max-width: 200px;
-  margin-top: 20px;
-  border-radius: 15px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-}
-
-/* Dropdown */
-select {
-  margin-top: 15px;
-  padding: 10px;
-  font-size: 15px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  width: 100%;
-  outline: none;
-  transition: 0.2s;
-}
-select:focus {
-  border-color: #ff6ec4;
-  box-shadow: 0 0 8px rgba(255,110,196,0.3);
-}
-
-/* Button */
-button {
-  margin-top: 20px;
-  background: #ff6ec4;
-  color: white;
   border: none;
-  padding: 12px 25px;
-  font-size: 16px;
-  border-radius: 12px;
+  border-radius: 20px;
+  padding: 15px;
   cursor: pointer;
-  transition: 0.3s;
-  width: 100%;
+  text-align: center;
 }
-button:hover {
-  background: #e85bb5;
+
+/* Hover effects */
+button:hover, .upload:hover, select:hover {
+  background: #0066ff;
+}
+
+/* Upload label */
+.upload {
+  display: block;
+  text-align: center;
+}
+
+/* Hide actual file input */
+.upload input {
+  display: none;
+}
+
+/* Image preview */
+#preview {
+  background: #0055ff;
+  border-radius: 20px;
+  width: 100%;
+  height: 150px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Select dropdown */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  position: relative;
 }
 
 /* Download link */
-a#downloadLink {
-  display: block;
-  margin-top: 18px;
-  font-weight: 600;
-  color: #ff6ec4;
+#downloadLink {
+  display: none;
+  text-align: center;
+  color: black;
+  font-weight: bold;
   text-decoration: none;
-  transition: 0.3s;
+  padding: 12px;
+  border-radius: 20px;
+  background: #0055ff;
 }
-a#downloadLink:hover {
-  color: #e85bb5;
+#downloadLink:hover {
+  background: #0066ff;
 }
-
 </style>
 </head>
 <body>
 
 <div class="card">
-  <h1>Image Converter</h1>
-
-  <label class="upload">
-    Choose Image
-    <input type="file" id="fileInput" accept="image/*" style="display:none">
+  <label class="upload">Choose Image
+    <input type="file" id="fileInput" accept="image/*">
   </label>
-
-  <img id="preview" alt="Preview will appear here">
 
   <select id="format">
     <option value="png">PNG</option>
@@ -133,9 +103,11 @@ a#downloadLink:hover {
     <option value="ico">ICO</option>
   </select>
 
+  <img id="preview" alt="(Image preview shows up here)">
+
   <button onclick="convert()">Convert</button>
 
-  <a id="downloadLink" style="display:none">Download</a>
+  <a id="downloadLink">Download</a>
 </div>
 
 <script>
@@ -145,13 +117,13 @@ let ready = false;
 document.getElementById("fileInput").addEventListener("change", e => {
   const file = e.target.files[0];
   const reader = new FileReader();
-  
+
   reader.onload = ev => {
     img.onload = () => ready = true;
     img.src = ev.target.result;
     document.getElementById("preview").src = img.src;
   };
-  
+
   reader.readAsDataURL(file);
 });
 
@@ -197,8 +169,8 @@ function download(url, name){
   const link = document.getElementById("downloadLink");
   link.href = url;
   link.download = name;
-  link.innerText = "Download " + name;
   link.style.display = "block";
+  link.innerText = "Download " + name;
 }
 </script>
 
