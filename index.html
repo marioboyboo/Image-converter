@@ -6,49 +6,101 @@
 <title>Image Converter</title>
 
 <style>
+
 body{
-font-family:Arial;
-background:#111;
-color:white;
-text-align:center;
-padding:40px;
+margin:0;
+font-family:Arial, Helvetica, sans-serif;
+background:linear-gradient(135deg,#6a5cff,#46c2ff);
+height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
 }
 
-.box{
-background:#1e1e1e;
+.card{
+background:white;
+padding:40px;
+border-radius:20px;
+box-shadow:0 20px 50px rgba(0,0,0,0.25);
+width:400px;
+text-align:center;
+}
+
+h1{
+margin-top:0;
+color:#333;
+}
+
+.upload{
+border:2px dashed #ccc;
 padding:30px;
-border-radius:10px;
-display:inline-block;
+border-radius:15px;
+cursor:pointer;
+transition:0.2s;
+}
+
+.upload:hover{
+border-color:#6a5cff;
+background:#f8f8ff;
 }
 
 button{
-padding:10px 20px;
+background:#6a5cff;
+color:white;
+border:none;
+padding:12px 20px;
 font-size:16px;
-margin-top:10px;
+border-radius:10px;
 cursor:pointer;
+margin-top:10px;
+}
+
+button:hover{
+background:#5847e0;
 }
 
 select{
-font-size:16px;
-padding:5px;
+padding:10px;
+border-radius:8px;
+border:1px solid #ccc;
+margin-top:10px;
+font-size:15px;
 }
 
 img{
-max-width:250px;
-margin-top:15px;
+max-width:200px;
+margin-top:20px;
+border-radius:10px;
 }
+
+a{
+display:block;
+margin-top:15px;
+color:#6a5cff;
+font-weight:bold;
+text-decoration:none;
+}
+
 </style>
 </head>
 
 <body>
 
+<div class="card">
+
 <h1>Image Converter</h1>
 
-<div class="box">
+<label class="upload">
+Choose Image
+<input type="file" id="fileInput" accept="image/*" style="display:none">
+</label>
 
-<input type="file" id="fileInput" accept="image/*"><br><br>
+<br>
 
-Convert To:
+<img id="preview">
+
+<br>
+
 <select id="format">
 <option value="png">PNG</option>
 <option value="jpeg">JPG</option>
@@ -57,15 +109,9 @@ Convert To:
 <option value="ico">ICO</option>
 </select>
 
-<br><br>
-
-<button onclick="convert()">Convert</button>
-
 <br>
 
-<img id="preview">
-
-<br><br>
+<button onclick="convert()">Convert</button>
 
 <a id="downloadLink" style="display:none">Download</a>
 
@@ -74,22 +120,17 @@ Convert To:
 <script>
 
 let img = new Image()
-let ready = false
+let ready=false
 
 document.getElementById("fileInput").addEventListener("change", e=>{
 
-const file = e.target.files[0]
-const reader = new FileReader()
+const file=e.target.files[0]
+const reader=new FileReader()
 
-reader.onload = ev => {
-
-img.onload = () => {
-ready = true
-}
-
-img.src = ev.target.result
-document.getElementById("preview").src = img.src
-
+reader.onload=ev=>{
+img.onload=()=>ready=true
+img.src=ev.target.result
+document.getElementById("preview").src=img.src
 }
 
 reader.readAsDataURL(file)
@@ -99,78 +140,51 @@ reader.readAsDataURL(file)
 function convert(){
 
 if(!ready){
-alert("Wait for image to finish loading.")
+alert("Image still loading")
 return
 }
 
-const format = document.getElementById("format").value
+const format=document.getElementById("format").value
 
-const canvas = document.createElement("canvas")
-const ctx = canvas.getContext("2d")
+const canvas=document.createElement("canvas")
+const ctx=canvas.getContext("2d")
 
-canvas.width = img.width
-canvas.height = img.height
+canvas.width=img.width
+canvas.height=img.height
 
 ctx.drawImage(img,0,0)
 
-if(format !== "ico"){
+if(format!=="ico"){
 
-const url = canvas.toDataURL("image/"+format)
+const url=canvas.toDataURL("image/"+format)
 
 download(url,"converted."+format)
 
-return
-}
-
-makeICO(canvas)
-
-}
-
-function makeICO(sourceCanvas){
-
-const size = 256
-
-const canvas = document.createElement("canvas")
-const ctx = canvas.getContext("2d")
-
-canvas.width = size
-canvas.height = size
-
-ctx.drawImage(sourceCanvas,0,0,size,size)
+}else{
 
 canvas.toBlob(async blob=>{
 
-const png = new Uint8Array(await blob.arrayBuffer())
+const png=new Uint8Array(await blob.arrayBuffer())
 
-const header = new Uint8Array(22)
+const header=new Uint8Array(22)
 
-header[0]=0
-header[1]=0
 header[2]=1
-header[3]=0
 header[4]=1
-header[5]=0
-
-header[6]=0
-header[7]=0
-header[8]=0
-header[9]=0
 header[10]=1
-header[11]=0
 header[12]=32
-header[13]=0
 
-const sizeView = new DataView(header.buffer)
-sizeView.setUint32(14,png.length,true)
-sizeView.setUint32(18,22,true)
+const view=new DataView(header.buffer)
 
-const ico = new Uint8Array(header.length + png.length)
+view.setUint32(14,png.length,true)
+view.setUint32(18,22,true)
+
+const ico=new Uint8Array(header.length+png.length)
 
 ico.set(header,0)
 ico.set(png,header.length)
 
-const blobOut = new Blob([ico],{type:"image/x-icon"})
-const url = URL.createObjectURL(blobOut)
+const blobOut=new Blob([ico],{type:"image/x-icon"})
+const url=URL.createObjectURL(blobOut)
 
 download(url,"converted.ico")
 
@@ -178,14 +192,16 @@ download(url,"converted.ico")
 
 }
 
+}
+
 function download(url,name){
 
-const link = document.getElementById("downloadLink")
+const link=document.getElementById("downloadLink")
 
-link.href = url
-link.download = name
-link.innerText = "Download " + name
-link.style.display = "inline"
+link.href=url
+link.download=name
+link.innerText="Download "+name
+link.style.display="block"
 
 }
 
