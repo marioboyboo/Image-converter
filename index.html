@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <title>Image Converter</title>
+
+<!-- Website Icon -->
+<link rel="icon" type="image/png" href="favicon.png">
+
 <style>
 /* Body with horizontal gradient animation */
 body {
@@ -13,7 +17,6 @@ body {
   align-items: center;
   height: 100vh;
   overflow: hidden;
-  /* New gradient: blue → red → magenta */
   background: linear-gradient(90deg, #001f99, #ff0000, #ff00ff);
   background-size: 400% 400%;
   animation: gradientAnimation 20s ease infinite;
@@ -25,7 +28,6 @@ body {
   100% { background-position: 0% 50%; }
 }
 
-/* Floating shapes container */
 .floating-shapes {
   position: absolute;
   width: 100%;
@@ -36,12 +38,11 @@ body {
   z-index: 0;
 }
 
-/* Floating circles */
 .shape {
   position: absolute;
   border-radius: 50%;
   opacity: 0.3;
-  background: linear-gradient(90deg, #ff00ff, #ff0000, #001f99); /* reversed gradient */
+  background: linear-gradient(90deg, #ff00ff, #ff0000, #001f99);
   animation: floatAnimation linear infinite;
 }
 
@@ -51,10 +52,9 @@ body {
   100% { transform: translateY(-100vh) translateX(-50px) rotate(360deg); }
 }
 
-/* Card styling */
 .card {
   position: relative;
-  z-index: 1; /* above shapes */
+  z-index: 1;
   background: #0040ff;
   border-radius: 25px;
   padding: 60px;
@@ -65,7 +65,6 @@ body {
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
-/* Buttons & upload */
 button, .upload {
   background: #0055ff;
   color: black;
@@ -78,15 +77,20 @@ button, .upload {
   text-align: center;
   transition: background 0.3s;
 }
+
 button:hover, .upload:hover {
   background: #0066ff;
 }
 
-/* Upload label */
-.upload { display: block; text-align: center; }
-.upload input { display: none; }
+.upload {
+  display: block;
+  text-align: center;
+}
 
-/* Preview container */
+.upload input {
+  display: none;
+}
+
 .preview-container {
   position: relative;
   width: 100%;
@@ -103,7 +107,6 @@ button:hover, .upload:hover {
   overflow: hidden;
 }
 
-/* Image inside preview */
 #preview {
   max-width: 100%;
   max-height: 100%;
@@ -112,7 +115,6 @@ button:hover, .upload:hover {
   border-radius: 25px;
 }
 
-/* Select dropdown with arrow */
 select {
   appearance: none;
   -webkit-appearance: none;
@@ -129,9 +131,11 @@ select {
   border: none;
   transition: background 0.3s;
 }
-select:hover { background-color: #0066ff; }
 
-/* Download link */
+select:hover {
+  background-color: #0066ff;
+}
+
 #downloadLink {
   display: none;
   text-align: center;
@@ -144,12 +148,15 @@ select:hover { background-color: #0066ff; }
   font-size: 22px;
   transition: background 0.3s;
 }
-#downloadLink:hover { background: #0066ff; }
+
+#downloadLink:hover {
+  background: #0066ff;
+}
 </style>
 </head>
+
 <body>
 
-<!-- Floating shapes -->
 <div class="floating-shapes" id="shapesContainer"></div>
 
 <div class="card">
@@ -165,9 +172,9 @@ select:hover { background-color: #0066ff; }
     <option value="ico">ICO</option>
   </select>
 
-  <div class="preview-container" id="previewContainer">
+  <div class="preview-container">
     <span id="placeholderText">Image shows up here</span>
-    <img id="preview" alt="Image shows up here">
+    <img id="preview">
   </div>
 
   <button onclick="convert()">Convert</button>
@@ -176,79 +183,115 @@ select:hover { background-color: #0066ff; }
 </div>
 
 <script>
-// Generate floating shapes
 const container = document.getElementById('shapesContainer');
+
 for (let i = 0; i < 15; i++) {
   const shape = document.createElement('div');
   shape.className = 'shape';
-  const size = Math.random() * 80 + 40; // 40–120px
-  shape.style.width = `${size}px`;
-  shape.style.height = `${size}px`;
-  shape.style.left = `${Math.random() * 100}%`;
-  shape.style.animationDuration = `${20 + Math.random()*20}s`;
-  shape.style.animationDelay = `${Math.random() * 20}s`;
+
+  const size = Math.random() * 80 + 40;
+
+  shape.style.width = size + "px";
+  shape.style.height = size + "px";
+  shape.style.left = Math.random() * 100 + "%";
+  shape.style.animationDuration = (20 + Math.random() * 20) + "s";
+  shape.style.animationDelay = (Math.random() * 20) + "s";
+
   container.appendChild(shape);
 }
 
-// Image converter logic
 let img = new Image();
 let ready = false;
 
 document.getElementById("fileInput").addEventListener("change", e => {
+
   const file = e.target.files[0];
-  if(!file) return;
+  if (!file) return;
+
   const reader = new FileReader();
+
   reader.onload = ev => {
+
     img.onload = () => {
       ready = true;
       document.getElementById("preview").style.display = "block";
       document.getElementById("placeholderText").style.display = "none";
     };
+
     img.src = ev.target.result;
     document.getElementById("preview").src = img.src;
   };
+
   reader.readAsDataURL(file);
+
 });
 
 function convert() {
-  if(!ready){ alert("Image still loading"); return; }
+
+  if (!ready) {
+    alert("Image still loading");
+    return;
+  }
+
   const format = document.getElementById("format").value;
+
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
+
   canvas.width = img.width;
   canvas.height = img.height;
+
   ctx.drawImage(img, 0, 0);
 
-  if(format !== "ico"){
+  if (format !== "ico") {
+
     const url = canvas.toDataURL("image/" + format);
     download(url, "converted." + format);
+
   } else {
+
     canvas.toBlob(async blob => {
+
       const png = new Uint8Array(await blob.arrayBuffer());
+
       const header = new Uint8Array(22);
+
       header[2] = 1;
       header[4] = 1;
       header[10] = 1;
       header[12] = 32;
+
       const view = new DataView(header.buffer);
+
       view.setUint32(14, png.length, true);
       view.setUint32(18, 22, true);
+
       const ico = new Uint8Array(header.length + png.length);
+
       ico.set(header, 0);
       ico.set(png, header.length);
+
       const blobOut = new Blob([ico], {type: "image/x-icon"});
+
       const url = URL.createObjectURL(blobOut);
+
       download(url, "converted.ico");
+
     });
+
   }
+
 }
 
-function download(url, name){
+function download(url, name) {
+
   const link = document.getElementById("downloadLink");
+
   link.href = url;
   link.download = name;
   link.style.display = "block";
   link.innerText = "Download " + name;
+
 }
 </script>
 
