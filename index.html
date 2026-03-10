@@ -3,7 +3,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Universal Image Converter</title>
+<title>Image Converter</title>
 
 <style>
 body{
@@ -74,17 +74,22 @@ Convert To:
 <script>
 
 let img = new Image()
-let loaded=false
+let ready = false
 
 document.getElementById("fileInput").addEventListener("change", e=>{
 
-const file=e.target.files[0]
-const reader=new FileReader()
+const file = e.target.files[0]
+const reader = new FileReader()
 
-reader.onload=ev=>{
-img.onload=()=>{loaded=true}
-img.src=ev.target.result
-document.getElementById("preview").src=img.src
+reader.onload = ev => {
+
+img.onload = () => {
+ready = true
+}
+
+img.src = ev.target.result
+document.getElementById("preview").src = img.src
+
 }
 
 reader.readAsDataURL(file)
@@ -93,101 +98,94 @@ reader.readAsDataURL(file)
 
 function convert(){
 
-if(!loaded){
-alert("Image still loading")
+if(!ready){
+alert("Wait for image to finish loading.")
 return
 }
 
-const format=document.getElementById("format").value
+const format = document.getElementById("format").value
 
-if(format==="ico"){
-makeICO()
-return
-}
+const canvas = document.createElement("canvas")
+const ctx = canvas.getContext("2d")
 
-const canvas=document.createElement("canvas")
-const ctx=canvas.getContext("2d")
-
-canvas.width=img.width
-canvas.height=img.height
+canvas.width = img.width
+canvas.height = img.height
 
 ctx.drawImage(img,0,0)
 
-const url=canvas.toDataURL("image/"+format)
+if(format !== "ico"){
 
-const link=document.getElementById("downloadLink")
+const url = canvas.toDataURL("image/"+format)
 
-link.href=url
-link.download="converted."+format
-link.innerText="Download "+format.toUpperCase()
-link.style.display="inline"
+download(url,"converted."+format)
+
+return
+}
+
+makeICO(canvas)
 
 }
 
-async function makeICO(){
+function makeICO(sourceCanvas){
 
-const sizes=[16,32,48,256]
-let pngBuffers=[]
+const size = 256
 
-for(let size of sizes){
+const canvas = document.createElement("canvas")
+const ctx = canvas.getContext("2d")
 
-let canvas=document.createElement("canvas")
-let ctx=canvas.getContext("2d")
+canvas.width = size
+canvas.height = size
 
-canvas.width=size
-canvas.height=size
+ctx.drawImage(sourceCanvas,0,0,size,size)
 
-ctx.drawImage(img,0,0,size,size)
+canvas.toBlob(async blob=>{
 
-let blob=await new Promise(r=>canvas.toBlob(r,"image/png"))
-pngBuffers.push(await blob.arrayBuffer())
+const png = new Uint8Array(await blob.arrayBuffer())
 
-}
+const header = new Uint8Array(22)
 
-let headerSize=6+(16*sizes.length)
-let totalSize=headerSize
+header[0]=0
+header[1]=0
+header[2]=1
+header[3]=0
+header[4]=1
+header[5]=0
 
-pngBuffers.forEach(b=>totalSize+=b.byteLength)
+header[6]=0
+header[7]=0
+header[8]=0
+header[9]=0
+header[10]=1
+header[11]=0
+header[12]=32
+header[13]=0
 
-let buffer=new ArrayBuffer(totalSize)
-let view=new DataView(buffer)
+const sizeView = new DataView(header.buffer)
+sizeView.setUint32(14,png.length,true)
+sizeView.setUint32(18,22,true)
 
-view.setUint16(0,0,true)
-view.setUint16(2,1,true)
-view.setUint16(4,sizes.length,true)
+const ico = new Uint8Array(header.length + png.length)
 
-let offset=headerSize
+ico.set(header,0)
+ico.set(png,header.length)
 
-sizes.forEach((size,i)=>{
+const blobOut = new Blob([ico],{type:"image/x-icon"})
+const url = URL.createObjectURL(blobOut)
 
-let entry=6+(i*16)
-
-view.setUint8(entry,size===256?0:size)
-view.setUint8(entry+1,size===256?0:size)
-view.setUint8(entry+2,0)
-view.setUint8(entry+3,0)
-
-view.setUint16(entry+4,1,true)
-view.setUint16(entry+6,32,true)
-
-view.setUint32(entry+8,pngBuffers[i].byteLength,true)
-view.setUint32(entry+12,offset,true)
-
-new Uint8Array(buffer,offset).set(new Uint8Array(pngBuffers[i]))
-
-offset+=pngBuffers[i].byteLength
+download(url,"converted.ico")
 
 })
 
-const blob=new Blob([buffer],{type:"image/x-icon"})
-const url=URL.createObjectURL(blob)
+}
 
-const link=document.getElementById("downloadLink")
+function download(url,name){
 
-link.href=url
-link.download="converted.ico"
-link.innerText="Download ICO"
-link.style.display="inline"
+const link = document.getElementById("downloadLink")
+
+link.href = url
+link.download = name
+link.innerText = "Download " + name
+link.style.display = "inline"
 
 }
 
