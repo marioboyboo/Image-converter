@@ -4,8 +4,10 @@
 <meta charset="UTF-8">
 <title>Image Converter</title>
 
-<!-- Website Icon -->
+<!-- Universal favicon setup -->
 <link rel="icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 
 <style>
 /* Body with horizontal gradient animation */
@@ -119,21 +121,14 @@ select {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  position: relative;
   padding: 20px 50px 20px 20px;
-  background: #0055ff url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><polygon points="6,9 12,15 18,9" fill="black"/></svg>') no-repeat right 15px center;
-  background-size: 12px;
+  background: #0055ff;
   border-radius: 25px;
   font-size: 22px;
   font-weight: bold;
   color: black;
   cursor: pointer;
   border: none;
-  transition: background 0.3s;
-}
-
-select:hover {
-  background-color: #0066ff;
 }
 
 #downloadLink {
@@ -146,11 +141,6 @@ select:hover {
   border-radius: 25px;
   background: #0055ff;
   font-size: 22px;
-  transition: background 0.3s;
-}
-
-#downloadLink:hover {
-  background: #0066ff;
 }
 </style>
 </head>
@@ -160,6 +150,7 @@ select:hover {
 <div class="floating-shapes" id="shapesContainer"></div>
 
 <div class="card">
+
 <label class="upload">Choose Image
 <input type="file" id="fileInput" accept="image/*">
 </label>
@@ -180,6 +171,7 @@ select:hover {
 <button onclick="convert()">Convert</button>
 
 <a id="downloadLink">Download</a>
+
 </div>
 
 <script>
@@ -195,7 +187,6 @@ shape.style.width = size + "px";
 shape.style.height = size + "px";
 shape.style.left = Math.random() * 100 + "%";
 shape.style.animationDuration = (20 + Math.random() * 20) + "s";
-shape.style.animationDelay = (Math.random() * 20) + "s";
 
 container.appendChild(shape);
 }
@@ -243,54 +234,14 @@ canvas.height = img.height;
 
 ctx.drawImage(img, 0, 0);
 
-if (format !== "ico") {
-
 const url = canvas.toDataURL("image/" + format);
-download(url, "converted." + format);
-
-} else {
-
-canvas.toBlob(async blob => {
-
-const png = new Uint8Array(await blob.arrayBuffer());
-
-const header = new Uint8Array(22);
-
-header[2] = 1;
-header[4] = 1;
-header[10] = 1;
-header[12] = 32;
-
-const view = new DataView(header.buffer);
-
-view.setUint32(14, png.length, true);
-view.setUint32(18, 22, true);
-
-const ico = new Uint8Array(header.length + png.length);
-
-ico.set(header, 0);
-ico.set(png, header.length);
-
-const blobOut = new Blob([ico], {type: "image/x-icon"});
-
-const url = URL.createObjectURL(blobOut);
-
-download(url, "converted.ico");
-
-});
-
-}
-
-}
-
-function download(url, name) {
 
 const link = document.getElementById("downloadLink");
 
 link.href = url;
-link.download = name;
+link.download = "converted." + format;
 link.style.display = "block";
-link.innerText = "Download " + name;
+link.innerText = "Download converted." + format;
 
 }
 </script>
