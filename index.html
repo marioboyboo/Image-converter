@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Image File Converter</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#111;
+    color:white;
+    text-align:center;
+    padding:40px;
+}
+
+.box{
+    background:#1e1e1e;
+    padding:30px;
+    border-radius:10px;
+    display:inline-block;
+}
+
+button{
+    padding:10px 20px;
+    font-size:16px;
+    margin-top:15px;
+    cursor:pointer;
+}
+
+select{
+    padding:5px;
+    font-size:16px;
+}
+
+canvas{
+    display:none;
+}
+
+img{
+    max-width:200px;
+    margin-top:20px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Image File Converter</h1>
+
+<div class="box">
+
+<input type="file" id="fileInput" accept="image/*"><br><br>
+
+Convert To:
+<select id="format">
+<option value="png">PNG</option>
+<option value="jpeg">JPG</option>
+<option value="webp">WEBP</option>
+<option value="bmp">BMP</option>
+<option value="ico">ICO</option>
+</select>
+
+<br>
+
+<button onclick="convertImage()">Convert</button>
+
+<br>
+
+<img id="preview">
+
+<br>
+
+<a id="downloadLink" style="display:none;">Download</a>
+
+</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+
+let img = new Image()
+
+document.getElementById("fileInput").addEventListener("change", function(e){
+
+    const file = e.target.files[0]
+    const reader = new FileReader()
+
+    reader.onload = function(event){
+        img.src = event.target.result
+        document.getElementById("preview").src = img.src
+    }
+
+    reader.readAsDataURL(file)
+})
+
+function convertImage(){
+
+    const canvas = document.getElementById("canvas")
+    const ctx = canvas.getContext("2d")
+
+    canvas.width = img.width
+    canvas.height = img.height
+
+    ctx.drawImage(img,0,0)
+
+    const format = document.getElementById("format").value
+
+    if(format === "ico"){
+        createICO(canvas)
+        return
+    }
+
+    const mime = "image/" + format
+
+    const dataURL = canvas.toDataURL(mime)
+
+    const link = document.getElementById("downloadLink")
+    link.href = dataURL
+    link.download = "converted." + format
+    link.innerText = "Download Converted Image"
+    link.style.display = "block"
+}
+
+function createICO(canvas){
+
+    const size = 32
+
+    const tempCanvas = document.createElement("canvas")
+    const ctx = tempCanvas.getContext("2d")
+
+    tempCanvas.width = size
+    tempCanvas.height = size
+
+    ctx.drawImage(canvas,0,0,size,size)
+
+    tempCanvas.toBlob(function(blob){
+
+        const reader = new FileReader()
+
+        reader.onload = function(){
+
+            const pngData = new Uint8Array(reader.result)
+
+            const icoHeader = new Uint8Array([
+                0,0,
+                1,0,
+                1,0,
+                size,
+                size,
+                0,
+                0,
+                1,0,
+                32,0,
+                pngData.length,0,0,0,
+                22,0,0,0
+            ])
+
+            const icoFile = new Uint8Array(icoHeader.length + pngData.length)
+
+            icoFile.set(icoHeader,0)
+            icoFile.set(pngData,icoHeader.length)
+
+            const blob = new Blob([icoFile],{type:"image/x-icon"})
+
+            const url = URL.createObjectURL(blob)
+
+            const link = document.getElementById("downloadLink")
+            link.href = url
+            link.download = "converted.ico"
+            link.innerText = "Download ICO File"
+            link.style.display = "block"
+        }
+
+        reader.readAsArrayBuffer(blob)
+
+    },"image/png")
+}
+
+</script>
+
+</body>
+</html>
