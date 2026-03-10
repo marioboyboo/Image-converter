@@ -3,46 +3,46 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Image Converter</title>
+<title>Universal Image Converter</title>
 
 <style>
 body{
-    font-family:Arial;
-    background:#111;
-    color:white;
-    text-align:center;
-    padding:40px;
+font-family:Arial;
+background:#111;
+color:white;
+text-align:center;
+padding:40px;
 }
 
 .box{
-    background:#1e1e1e;
-    padding:30px;
-    border-radius:10px;
-    display:inline-block;
+background:#1e1e1e;
+padding:30px;
+border-radius:10px;
+display:inline-block;
 }
 
 button{
-    padding:10px 20px;
-    font-size:16px;
-    margin-top:15px;
-    cursor:pointer;
+padding:10px 20px;
+font-size:16px;
+margin-top:10px;
+cursor:pointer;
 }
 
 select{
-    padding:5px;
-    font-size:16px;
+font-size:16px;
+padding:5px;
 }
 
 img{
-    max-width:250px;
-    margin-top:20px;
+max-width:250px;
+margin-top:15px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>Image File Converter</h1>
+<h1>Image Converter</h1>
 
 <div class="box">
 
@@ -59,7 +59,7 @@ Convert To:
 
 <br><br>
 
-<button onclick="convertImage()">Convert</button>
+<button onclick="convert()">Convert</button>
 
 <br>
 
@@ -67,131 +67,128 @@ Convert To:
 
 <br><br>
 
-<a id="downloadLink" style="display:none;">Download</a>
+<a id="downloadLink" style="display:none">Download</a>
 
 </div>
-
-<canvas id="canvas" style="display:none"></canvas>
 
 <script>
 
 let img = new Image()
-let imageLoaded = false
+let loaded=false
 
-document.getElementById("fileInput").addEventListener("change", function(e){
+document.getElementById("fileInput").addEventListener("change", e=>{
 
-    const file = e.target.files[0]
-    const reader = new FileReader()
+const file=e.target.files[0]
+const reader=new FileReader()
 
-    reader.onload = function(event){
-
-        img.onload = function(){
-            imageLoaded = true
-        }
-
-        img.src = event.target.result
-        document.getElementById("preview").src = img.src
-    }
-
-    reader.readAsDataURL(file)
-})
-
-function convertImage(){
-
-    if(!imageLoaded){
-        alert("Image still loading.")
-        return
-    }
-
-    const canvas = document.getElementById("canvas")
-    const ctx = canvas.getContext("2d")
-
-    canvas.width = img.width
-    canvas.height = img.height
-
-    ctx.clearRect(0,0,canvas.width,canvas.height)
-    ctx.drawImage(img,0,0)
-
-    const format = document.getElementById("format").value
-
-    if(format === "ico"){
-        createICO()
-        return
-    }
-
-    const mime = "image/" + format
-    const dataURL = canvas.toDataURL(mime)
-
-    const link = document.getElementById("downloadLink")
-    link.href = dataURL
-    link.download = "converted." + format
-    link.innerText = "Download Converted Image"
-    link.style.display = "block"
+reader.onload=ev=>{
+img.onload=()=>{loaded=true}
+img.src=ev.target.result
+document.getElementById("preview").src=img.src
 }
 
-function createICO(){
+reader.readAsDataURL(file)
 
-    const size = 64
+})
 
-    const tempCanvas = document.createElement("canvas")
-    const ctx = tempCanvas.getContext("2d")
+function convert(){
 
-    tempCanvas.width = size
-    tempCanvas.height = size
+if(!loaded){
+alert("Image still loading")
+return
+}
 
-    ctx.clearRect(0,0,size,size)
+const format=document.getElementById("format").value
 
-    const scale = Math.min(size/img.width,size/img.height)
+if(format==="ico"){
+makeICO()
+return
+}
 
-    const w = img.width * scale
-    const h = img.height * scale
+const canvas=document.createElement("canvas")
+const ctx=canvas.getContext("2d")
 
-    const x = (size - w)/2
-    const y = (size - h)/2
+canvas.width=img.width
+canvas.height=img.height
 
-    ctx.drawImage(img,x,y,w,h)
+ctx.drawImage(img,0,0)
 
-    tempCanvas.toBlob(function(blob){
+const url=canvas.toDataURL("image/"+format)
 
-        const reader = new FileReader()
+const link=document.getElementById("downloadLink")
 
-        reader.onload = function(){
+link.href=url
+link.download="converted."+format
+link.innerText="Download "+format.toUpperCase()
+link.style.display="inline"
 
-            const pngData = new Uint8Array(reader.result)
+}
 
-            const header = new Uint8Array([
-                0,0,
-                1,0,
-                1,0,
-                size,
-                size,
-                0,
-                0,
-                1,0,
-                32,0,
-                pngData.length,0,0,0,
-                22,0,0,0
-            ])
+async function makeICO(){
 
-            const ico = new Uint8Array(header.length + pngData.length)
+const sizes=[16,32,48,256]
+let pngBuffers=[]
 
-            ico.set(header,0)
-            ico.set(pngData,header.length)
+for(let size of sizes){
 
-            const blob = new Blob([ico],{type:"image/x-icon"})
+let canvas=document.createElement("canvas")
+let ctx=canvas.getContext("2d")
 
-            const url = URL.createObjectURL(blob)
+canvas.width=size
+canvas.height=size
 
-            const link = document.getElementById("downloadLink")
-            link.href = url
-            link.download = "converted.ico"
-            link.innerText = "Download ICO"
-            link.style.display = "block"
-        }
+ctx.drawImage(img,0,0,size,size)
 
-        reader.readAsArrayBuffer(blob)
+let blob=await new Promise(r=>canvas.toBlob(r,"image/png"))
+pngBuffers.push(await blob.arrayBuffer())
 
-    },"image/png")
+}
+
+let headerSize=6+(16*sizes.length)
+let totalSize=headerSize
+
+pngBuffers.forEach(b=>totalSize+=b.byteLength)
+
+let buffer=new ArrayBuffer(totalSize)
+let view=new DataView(buffer)
+
+view.setUint16(0,0,true)
+view.setUint16(2,1,true)
+view.setUint16(4,sizes.length,true)
+
+let offset=headerSize
+
+sizes.forEach((size,i)=>{
+
+let entry=6+(i*16)
+
+view.setUint8(entry,size===256?0:size)
+view.setUint8(entry+1,size===256?0:size)
+view.setUint8(entry+2,0)
+view.setUint8(entry+3,0)
+
+view.setUint16(entry+4,1,true)
+view.setUint16(entry+6,32,true)
+
+view.setUint32(entry+8,pngBuffers[i].byteLength,true)
+view.setUint32(entry+12,offset,true)
+
+new Uint8Array(buffer,offset).set(new Uint8Array(pngBuffers[i]))
+
+offset+=pngBuffers[i].byteLength
+
+})
+
+const blob=new Blob([buffer],{type:"image/x-icon"})
+const url=URL.createObjectURL(blob)
+
+const link=document.getElementById("downloadLink")
+
+link.href=url
+link.download="converted.ico"
+link.innerText="Download ICO"
+link.style.display="inline"
+
 }
 
 </script>
