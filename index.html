@@ -4,13 +4,18 @@
 <meta charset="UTF-8">
 <title>Image Converter</title>
 
-<!-- Universal favicon setup -->
+<!-- Favicons for all browsers -->
 <link rel="icon" href="favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="favicon-512.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
+<!-- Manifest for Opera / Chrome Speed Dial -->
+<link rel="manifest" href="manifest.json">
+
 <style>
+/* Body with horizontal gradient animation */
 body {
   margin: 0;
   font-family: Arial, Helvetica, sans-serif;
@@ -30,6 +35,7 @@ body {
   100% { background-position: 0% 50%; }
 }
 
+/* Floating shapes container */
 .floating-shapes {
   position: absolute;
   width: 100%;
@@ -40,6 +46,7 @@ body {
   z-index: 0;
 }
 
+/* Floating circles */
 .shape {
   position: absolute;
   border-radius: 50%;
@@ -54,6 +61,7 @@ body {
   100% { transform: translateY(-100vh) translateX(-50px) rotate(360deg); }
 }
 
+/* Card styling */
 .card {
   position: relative;
   z-index: 1;
@@ -67,6 +75,7 @@ body {
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
+/* Buttons & upload */
 button, .upload {
   background: #0055ff;
   color: black;
@@ -87,6 +96,7 @@ button:hover, .upload:hover {
 .upload { display: block; text-align: center; }
 .upload input { display: none; }
 
+/* Preview container */
 .preview-container {
   position: relative;
   width: 100%;
@@ -113,9 +123,6 @@ button:hover, .upload:hover {
 
 select {
   appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  position: relative;
   padding: 20px 50px 20px 20px;
   background: #0055ff;
   border-radius: 25px;
@@ -145,7 +152,6 @@ select {
 <div class="floating-shapes" id="shapesContainer"></div>
 
 <div class="card">
-
 <label class="upload">Choose Image
 <input type="file" id="fileInput" accept="image/*">
 </label>
@@ -166,20 +172,23 @@ select {
 <button onclick="convert()">Convert</button>
 
 <a id="downloadLink">Download</a>
-
 </div>
 
 <script>
+// floating shapes
 const container = document.getElementById('shapesContainer');
 
 for (let i = 0; i < 15; i++) {
   const shape = document.createElement('div');
   shape.className = 'shape';
+
   const size = Math.random() * 80 + 40;
   shape.style.width = size + "px";
   shape.style.height = size + "px";
   shape.style.left = Math.random() * 100 + "%";
-  shape.style.animationDuration = (20 + Math.random() * 20) + "s";
+  shape.style.animationDuration = 20 + Math.random()*20 + "s";
+  shape.style.animationDelay = Math.random()*20 + "s";
+
   container.appendChild(shape);
 }
 
@@ -188,26 +197,27 @@ let ready = false;
 
 document.getElementById("fileInput").addEventListener("change", e => {
   const file = e.target.files[0];
-  if (!file) return;
+  if(!file) return;
 
   const reader = new FileReader();
 
   reader.onload = ev => {
     img.onload = () => {
       ready = true;
-      document.getElementById("preview").style.display = "block";
-      document.getElementById("placeholderText").style.display = "none";
+      preview.style.display = "block";
+      placeholderText.style.display = "none";
     };
 
     img.src = ev.target.result;
-    document.getElementById("preview").src = img.src;
+    preview.src = img.src;
   };
 
   reader.readAsDataURL(file);
 });
 
 function convert() {
-  if (!ready){
+
+  if(!ready){
     alert("Image still loading");
     return;
   }
@@ -222,14 +232,13 @@ function convert() {
 
   ctx.drawImage(img,0,0);
 
-  const url = canvas.toDataURL("image/" + format);
+  const url = canvas.toDataURL("image/"+format);
 
   const link = document.getElementById("downloadLink");
 
   link.href = url;
-  link.download = "converted." + format;
+  link.download = "converted."+format;
   link.style.display = "block";
-  link.innerText = "Download converted." + format;
 }
 </script>
 
